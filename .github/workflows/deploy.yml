@@ -2,44 +2,56 @@ name: Deploy to GitHub Pages
 
 on:
   push:
-    branches: [main]  # 推送到main分支时触发
+    branches: [ "main" ]
+  workflow_dispatch:
 
 permissions:
   contents: read
   pages: write
   id-token: write
 
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Setup Node.js
+      
+      - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          cache: 'npm'  # 添加缓存加速
-
+          node-version: 20
+          cache: 'npm'
+      
       - name: Install dependencies
-        run: npm ci  # 使用更严格的npm ci
-
+        run: npm ci
+      
       - name: Build
         run: npm run build
         env:
-          # 如果需要环境变量，在这里设置
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-
+      
+      - name: Fix MIME types
+        run: |
+          find ./dist/assets -name "*.js" -exec sh -c 'mv "$0" "${0%.js}.jsx" || true' {} \;
+          find ./dist/assets -name "*.jsx" -exec sh -c 'mv "$0" "${0%.jsx}.js" || true' {} \;
+      
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: './dist'
+          path: ./dist
 
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
