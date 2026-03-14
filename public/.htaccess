@@ -1,0 +1,16 @@
+# 修复 MIME 类型
+AddType application/javascript .js
+AddType text/javascript .js
+AddType application/javascript .mjs
+AddType text/javascript .mjs
+AddType application/wasm .wasm
+
+# 确保正确的 MIME 类型
+<IfModule mod_mime.c>
+  RemoveType .js
+  RemoveType .mjs
+  RemoveType .wasm
+  AddType application/javascript .js
+  AddType application/javascript .mjs
+  AddType application/wasm .wasm
+</IfModule>
