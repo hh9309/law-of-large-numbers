@@ -1,0 +1,5 @@
+{
+  "name": "概率之光：大数定律探索者",
+  "description": "一个交互式的大数定律演示工具，通过动态动画和AI导师深入浅出地展示频率稳定性与概率收敛。",
+  "requestFramePermissions": []
+}
